@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Minha página</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <style>
+        .btn {
+            margin: 1em 4em;
+        }
+        .line {
+            margin: 0;
+            padding: 0;
+            letter-spacing: 18px;
+        }
+        p {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="row">
+            <div class="container text-center">
+                <h2>
+                    Algoritmo de tremaux
+                </h2>
+            </div>
+        </header>
+        <main class="row">
+            <div id="tela" class="container text-center">
+                <p id="l0" class="line">00000000000000</p>
+                <p id="l1" class="line">00000000000000</p>
+                <p id="l2" class="line">00000000000000</p>
+                <p id="l3" class="line">00000000000000</p>
+                <p id="l4" class="line">00000000000000</p>
+                <p id="l5" class="line">00000000000000</p>
+                <p id="l6" class="line">00000000000000</p>
+                <p id="l7" class="line">00000000000000</p>
+                <p id="l8" class="line">00000000000000</p>
+                <p id="l9" class="line">00000000000000</p>
+                <p id="l10" class="line">00000000000000</p>
+                <p id="l11" class="line">00000000000000</p>
+                <p id="l12" class="line">00000000000000</p>
+                <p id="l13" class="line">00000000000000</p>
+                <p id="l14" class="line">00000000000000</p>
+            </div>
+        </main>
+        <footer class="row">
+                <button class="btn btn-alert col-sm" onclick="sortMaze()">trocar de maze</button>
+            <!--<button class="btn btn-success col-sm">começar</button>
+            <button class="btn btn-danger col-sm" onclick="reset()">resetar</button>
+            
+            <span>av:<p id="msg">---</p></span>
+            <span>direcao<p id="msg2">---</p></span> -->
+        </footer>
+    </div>
+    <script>
+        let ln;
+        let qtdLinhas;
+        let qtdNumPorLns;
+        let mazeCarregado;
+        let playerX;
+        let playerY;
+        let avancando = true;
+        let dir = "---";
+        let hist = [[playerX, playerY]];
+        let intervalo;
+
+        let steps=1000;
+
+        let mazes=[];
+        mazeCarregado = maze6();
+
+
+        function definirVars() {
+            intervalo ="";
+            playerX = 1;
+            playerY = 1;
+            avancando = true;
+            dir = "---";
+            hist = [[playerX, playerY]];
+
+            steps=850;  
+
+
+            mazes.push(maze4());
+            mazes.push(maze5());
+            mazes.push(maze6());
+        }
+        window.onload = start();
+        function start() {
+            definirVars();
+            ln = carregaLinhasDom();
+            qtdLinhas = contaLinhas(document.querySelectorAll('.line'));
+            qtdNumPorLns = ln.x0.innerHTML.length;
+            
+            mazeRefresh();
+        }
+        function sortMaze(){
+            reset();
+            mazeCarregado = mazes[Math.round(Math.random() * ((mazes.length-1) - 0) + 0)];
+            
+        }
+        function reset(){
+            clearInterval(intervalo);
+            start();
+        }
+        function mazeRefresh() {
+            intervalo = setInterval(() => {
+                carregaMaze(mazeCarregado);
+                checaSimbolo(hist[hist.length - 1][0], hist[hist.length - 1][1], mazeCarregado);
+            }, steps)
+        }
+        function printPlayer(playerX, playerY) {
+            let player = "☻"; //alt 2
+            mazeCarregado[playerX][playerY] = player;
+        }
+        function printRoute(playerX, playerY) {
+            let path = "■"; //alt 254
+            mazeCarregado[playerX][playerY] = path;
+        }
+        function printRouteDone(playerX, playerY) {
+            let deadEnd = "◘"; //alt 0164
+            mazeCarregado[playerX][playerY] = deadEnd;
+        }
+        function printRouteClean(playerX, playerY) {
+            let clean = "○";
+            mazeCarregado[playerX][playerY] = clean;
+        }
+        function print(a, b) {
+            //msg.innerHTML = a + " - ";
+            //msg2.innerHTML = " - " + b;
+        }
+        function checaSimbolo(x, y, mazezinho) {
+            if (x == 0 || y == 0 || x >= mazezinho[0].length-1 || y >= mazezinho[0].length-1) {
+                alert('SAIU /o/!!');
+                playerX = -1;
+                playerY = -1;
+                hist[hist.length - 1][0] = -1;
+                hist[hist.length - 1][1] = -1;
+            }
+            //console.log(x);
+            if (mazezinho[x][y + 1] == '○') {
+                avancando = true;
+            }
+            if (mazezinho[x + 1][y] == '○') {
+                avancando = true;
+            }
+            if (mazezinho[x][y - 1] == '○') {
+                avancando = true;
+            }
+            if (mazezinho[x - 1][y] == '○') {
+                avancando = true;
+            }
+            print(avancando, dir);
+            if (mazezinho[x][y + 1] == '○' && avancando) {
+                //console.log("direita");
+                dir = "direita";
+                avancando = true;
+                printRoute(playerX, playerY);
+                playerY++;
+                hist.push([playerX, playerY])
+                printPlayer(playerX, playerY);
+            } else if (mazezinho[x + 1][y] == '○' && avancando) {
+                //console.log("baixo");
+                dir = "baixo";
+                avancando = true;
+                printRoute(playerX, playerY);
+                playerX++;
+                hist.push([playerX, playerY])
+                printPlayer(playerX, playerY);
+            } else if (mazezinho[x][y - 1] == '○' && avancando) {
+                //console.log("esquerda");
+                dir = "esquerda";
+                avancando = true;
+                printRoute(playerX, playerY);
+                playerY--;
+                hist.push([playerX, playerY])
+                printPlayer(playerX, playerY);
+            } else if (mazezinho[x - 1][y] == '○' && avancando) {
+                //console.log("topo");
+                dir = "topo";
+                avancando = true;
+                printRoute(playerX, playerY);
+                playerX--;
+                hist.push([playerX, playerY])
+                printPlayer(playerX, playerY);
+            } else {
+                printRoute(playerX, playerY);
+                hist.pop()
+                playerX = hist[hist.length - 1][0];
+                playerY = hist[hist.length - 1][1];
+                printPlayer(playerX, playerY);
+            }
+            print(avancando, dir);
+        }
+        function carregaMaze(lab) {
+            let i = 0;
+            let i2 = 0;
+            let linha;
+            lab.forEach(linhazinha => {
+                linha = "";
+                i2 = 0;
+                linhazinha.forEach(valor => {
+                    linha += lab[i][i2];
+                    i2++;
+                })
+                ln["x" + i].innerHTML = linha;
+                i++;
+            })
+        }
+        function testeMatrix(num, qtdLns, qtdNums, matrix) {
+
+            for (i = 0; i <= (qtdLns - 1); i++) {
+                let linha = "";
+                for (j = 0; j <= qtdNums; j++) {
+                    linha += num;
+                }
+                let pos = "x" + i;
+                matrix[pos].innerHTML = linha;
+            }
+        }
+        function printaR(data) {
+            console.log("-->", data);
+        }
+        function contaLinhas(lines) {
+            let total = 0;
+            lines.forEach(el => {
+                total++
+            });
+            return total;
+        }
+        function carregaLinhasDom() {
+            let lnTemp = {};
+            let linhas = document.querySelectorAll('.line');
+            let nLinhas = linhas.length;
+
+            linhas.forEach(element => {
+                let id = element.id;
+                lnTemp["x" + id.substr(1, id.length)] = element;
+                //console.log(id.substr(1,id.length), element);
+            });
+            return lnTemp;
+        }
+
+        function mazeBase() {
+            let maze = []
+
+            maze.push([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+            maze.push([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
+
+            return maze;
+        }
+
+        function maze1() {
+            let maze = []
+            //alt 09 , alt 10
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+
+            return maze;
+        }
+
+        function maze2() {
+            let maze = []
+            //alt 09 , alt 10
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+
+            return maze;
+        }
+
+        function maze3() {
+            let maze = []
+            //alt 09 , alt 10
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "◙", "○", "○", "◙", "○", "◙", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "◙", "○", "◙", "○", "○", "◙", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "◙", "○", "◙", "◙", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "◙", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "◙", "○", "○", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "◙", "○", "◙", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "◙", "◙", "○", "◙", "○", "◙", "◙", "◙", "◙", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "◙", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "◙", "◙", "◙", "◙", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "◙", "◙", "◙", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+
+            return maze;
+        }
+
+        function maze4() {
+            let maze = []
+            //alt 09 , alt 10
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "○", "◙", "○", "○", "○", "○", "○", "◙", "○", "○", "◙"]);
+            maze.push(["◙", "○", "◙", "○", "○", "◙", "○", "◙", "◙", "◙", "○", "◙", "◙", "○", "◙"]);
+            maze.push(["◙", "○", "◙", "○", "◙", "○", "○", "◙", "○", "○", "○", "◙", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "◙", "○", "◙", "◙", "○", "◙", "◙", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "◙", "○", "◙", "○", "○", "◙", "○", "○", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "○", "○", "○", "◙", "○", "◙", "○", "○", "○", "◙", "○", "◙"]);
+            maze.push(["◙", "○", "◙", "○", "◙", "○", "◙", "○", "◙", "○", "◙", "◙", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "◙", "○", "○", "○", "○", "◙", "◙", "○", "◙"]);
+            maze.push(["◙", "◙", "◙", "○", "◙", "○", "◙", "◙", "◙", "◙", "○", "◙", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "◙", "○", "◙", "○", "○", "◙", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "◙", "◙", "◙", "◙", "○", "◙", "○", "◙", "◙", "○", "◙", "○", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "◙", "○", "◙", "◙", "○", "◙", "◙", "○", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "◙", "◙", "◙", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+
+            return maze;
+        }
+
+        function maze5() {
+            let maze = []
+            //alt 09 , alt 10
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "○", "○", "○", "○", "○", "○", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "○", "◙", "◙", "○", "◙", "◙", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "○", "◙", "○", "○", "○", "◙", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "◙", "○", "◙", "○", "◙", "○", "○", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "○", "◙", "○", "○", "○", "◙", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "○", "◙", "◙", "○", "◙", "◙", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "○", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "◙", "○", "◙", "◙", "◙", "◙", "○", "◙", "◙", "◙", "◙", "◙", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "○", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+
+            return maze;
+        }
+
+        function maze6() {
+            let maze = []
+            //alt 09 , alt 10
+            maze.push(["◙", "◙", "◙", "○", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "○", "○", "○", "○", "○", "○", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "○", "◙", "◙", "○", "◙", "◙", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "○", "◙", "○", "○", "○", "◙", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "◙", "○", "◙", "○", "◙", "○", "○", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "○", "◙", "○", "○", "○", "◙", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "○", "◙", "◙", "○", "◙", "◙", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "◙", "◙", "○", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "○", "◙", "◙"]);
+            maze.push(["◙", "○", "○", "◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "◙", "○", "◙", "◙", "◙", "◙", "○", "◙", "◙", "◙", "◙", "◙", "○", "◙"]);
+            maze.push(["◙", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "○", "◙"]);
+            maze.push(["◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙", "◙"]);
+
+            return maze;
+        }
+    </script>
+
+</body>
+
+</html>
